@@ -1,2 +1,6 @@
 /OWASPZAPDotNetAPI.suo
 /OWASPZAPDotNetAPI.v11.suo
+OLD_OWASPZAPDotNetApi
+.DS_Store
+bin
+obj

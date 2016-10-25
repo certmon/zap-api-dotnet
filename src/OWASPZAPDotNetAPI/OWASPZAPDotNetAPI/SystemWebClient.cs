@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,34 +29,43 @@ namespace OWASPZAPDotNetAPI
 {
     class SystemWebClient : IWebClient, IDisposable
     {
-        WebClient webClient;
-        WebProxy webProxy;
+        HttpClient httpClient;
+        //WebProxy webProxy;
 
         public SystemWebClient(string proxyHost, int proxyPort)
         {
-            webProxy = new WebProxy(proxyHost, proxyPort);
-            webClient = new WebClient();
-            webClient.Proxy = webProxy;
+            var handler = new HttpClientHandler {
+                Proxy = new SystemWebProxy(string.Format("{0}:{1}",  proxyHost, proxyPort)),
+                UseProxy = true
+            };
+
+            httpClient =  new HttpClient(handler);
         }
 
         public string DownloadString(string address)
         {
-            return webClient.DownloadString(address);
+            return DownloadString(new Uri(address));            
         }
 
         public string DownloadString(Uri uri)
         {
-            return webClient.DownloadString(uri);
+            string response = null;
+            var task = httpClient.GetStringAsync(uri).ContinueWith(r => response = r.Result);
+            task.Wait();
+            return response;
         }
 
         public byte[] DownloadData(Uri uri)
         {
-            return webClient.DownloadData(uri);
+            byte[] bits = null;
+            var task = httpClient.GetByteArrayAsync(uri).ContinueWith(r => bits = r.Result);
+            task.Wait();
+            return bits;
         }
 
         public void Dispose()
         {
-            webClient.Dispose();
+            httpClient.Dispose();
         }
     }
 }
